@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>إدارة رفيق الطاعة</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --green:#1E5B46; --gold:#B8892E; --goldtext:#7A5A12; --goldchip:#FFF4DC; --bg:#F6F2E8; --surface:#fff; --ink:#1F2A24; --muted:#5B655F; --border:#E6DFCC; --bad:#B3361F; --okchip:#E3EEE7; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.7 "IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif }
+  button,input,textarea,select { font:inherit; color:inherit }
+  .top { background:var(--green); color:#FBF6E9; padding:14px max(16px,4vw); display:flex; align-items:center; gap:12px; flex-wrap:wrap }
+  .top h1 { margin:0; font-size:20px; flex:1; min-width:160px }
+  .top .status { font-size:13px; color:#E9C877 }
+  nav { display:flex; gap:4px; overflow-x:auto; padding:10px max(16px,4vw); background:var(--surface); border-bottom:1px solid var(--border) }
+  nav button { border:0; background:none; padding:9px 14px; border-radius:10px; cursor:pointer; white-space:nowrap; color:var(--muted); min-height:44px }
+  nav button.on { background:var(--okchip); color:var(--green); font-weight:600 }
+  main { max-width:900px; margin:auto; padding:20px 16px 90px; display:grid; gap:14px }
+  h2 { margin:0; font-size:19px; color:var(--green) }
+  .hint { color:var(--muted); font-size:14px; margin:0 }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; display:grid; gap:10px; min-width:0 }
+  label { display:grid; gap:4px; font-size:14px; font-weight:600 }
+  input[type=text],input[type=password],input[type=number],input[type=search],textarea,select { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#FFFDF8; font-weight:400 }
+  textarea { min-height:90px; resize:vertical }
+  input:focus-visible,textarea:focus-visible,button:focus-visible,select:focus-visible { outline:2px solid var(--green); outline-offset:1px }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center }
+  .grow { flex:1; min-width:150px }
+  .btn { border:1px solid var(--border); background:var(--surface); padding:9px 16px; border-radius:10px; cursor:pointer; min-height:44px; font-weight:600 }
+  .btn.primary { background:var(--green); color:#FBF6E9; border-color:var(--green) }
+  .btn.danger { color:var(--bad); border-color:var(--bad) }
+  .btn:disabled { opacity:.5; cursor:default }
+  .check { display:flex; gap:8px; align-items:center; font-weight:400; min-height:44px }
+  .check input { width:20px; height:20px }
+  .notice { background:var(--goldchip); color:var(--goldtext); border-radius:12px; padding:10px 14px; font-size:14px }
+  .ok { background:var(--okchip); color:var(--green) }
+  .err { background:#FBE9E5; color:var(--bad) }
+  .bar { position:fixed; bottom:0; inset-inline:0; background:var(--surface); border-top:1px solid var(--border); padding:10px max(16px,4vw); display:flex; gap:10px; align-items:center; flex-wrap:wrap; z-index:5 }
+  .bar .msg { flex:1; min-width:140px; font-size:14px; color:var(--muted) }
+  table { width:100%; border-collapse:collapse; font-size:14px }
+  th,td { padding:8px 6px; border-bottom:1px solid var(--border); text-align:right; vertical-align:top }
+  .tablewrap { overflow-x:auto }
+  .login { max-width:460px; margin:8vh auto; padding:0 16px; display:grid; gap:14px }
+  .q { padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; background:none; border-inline:0; border-top:0; width:100%; text-align:right; min-height:44px }
+  .q.done::before { content:"✓ "; color:var(--green); font-weight:700 }
+  .muted { color:var(--muted); font-size:13px }
+  ol { margin:0; padding-inline-start:22px }
+  [hidden] { display:none !important }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const REPO = 'tahahhussain/rafiq-altaa-content';
+const API = 'https://api.github.com/repos/' + REPO;
+const SECTIONS = [['quran','القرآن الكريم'],['radio','إذاعة القرآن'],['prayer','مواقيت الصلاة'],['qibla','اتجاه القبلة'],['adhkar','الأذكار والأدعية'],['hadith','الحديث الشريف'],['stories','القصص والسيرة'],['fiqh','الفقه والفتاوى'],['calendar','التقويم والمناسبات'],['debates','مناظرات وحوارات'],['ilm','العلم والإيمان'],['quiz','المسابقات'],['kids','قصص قصيرة وألعاب']];
+const CATS = [['quran','القرآن'],['prophets','الأنبياء'],['seerah','السيرة'],['fiqh','الفقه'],['general','ثقافة إسلامية']];
+const TABS = [['sections','الأقسام'],['notice','الإعلان'],['daily','حديث اليوم'],['stories','القصص'],['quiz','المسابقة'],['fatwa','الفتاوى'],['publish','المراجعة والنشر'],['log','السجل']];
+const LIMITS = { label:40, nTitle:80, nBody:400, text:600, source:80, lesson:200, q:300, opt:120, answer:6000 };
+
+const S = { token:null, user:null, tab:'sections', draft:null, draftSha:null, live:null, liveSha:null, dirty:false, questions:null, filter:'', pick:null, msg:'', msgKind:'' };
+const blank = () => ({ version:1, sections:{}, announcement:{ on:false, id:'', title:'', body:'' }, daily:[], stories:[], quiz:[], fatwa:{} });
+
+/* Everything is built with textContent, so saved text can never run as code. */
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k in el && k !== 'list') el[k] = v;
+    else el.setAttribute(k, v);
+  }
+  for (const kid of kids.flat(Infinity)) if (kid != null && kid !== false) el.append(kid);
+  return el;
+}
+const toB64 = (s) => { const b = new TextEncoder().encode(s); let o = ''; for (let i = 0; i < b.length; i += 0x8000) o += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(o); };
+const fromB64 = (s) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g, '')), (c) => c.charCodeAt(0)));
+
+async function gh(path, opts = {}) {
+  const res = await fetch(path.startsWith('http') ? path : API + path, { ...opts, headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + S.token, 'X-GitHub-Api-Version': '2022-11-28', ...(opts.body ? { 'Content-Type': 'application/json' } : {}) } });
+  if (res.status === 401) throw new Error('المفتاح غير صحيح أو انتهت صلاحيته.');
+  if (res.status === 403) throw new Error('المفتاح لا يملك صلاحية الكتابة على مستودع المحتوى.');
+  if (res.status === 409) throw new Error('تغيّر الملف من مكان آخر. حدّث الصفحة وأعد التعديل.');
+  if (!res.ok && res.status !== 404) throw new Error('تعذّر الاتصال بـ GitHub (' + res.status + ').');
+  return res.status === 404 ? null : res.json();
+}
+async function readFile(name, ref) {
+  const f = await gh('/contents/' + name + (ref ? '?ref=' + ref : ''));
+  return f ? { data: JSON.parse(fromB64(f.content)), sha: f.sha } : { data: null, sha: null };
+}
+async function writeFile(name, data, sha, message) {
+  const r = await gh('/contents/' + name, { method: 'PUT', body: JSON.stringify({ message, content: toB64(JSON.stringify(data, null, 1) + '\n'), ...(sha ? { sha } : {}) }) });
+  return r.content.sha;
+}
+
+function say(msg, kind = '') { S.msg = msg; S.msgKind = kind; const m = document.getElementById('msg'); if (m) { m.textContent = msg; m.className = 'msg ' + kind; } }
+function touch() { S.dirty = true; say('تعديلات غير محفوظة'); const b = document.getElementById('save'); if (b) b.disabled = false; }
+
+/* ---- Field helpers: each edits one value of the draft and marks it unsaved ---- */
+function input(labelText, get, set, max, attrs = {}) {
+  const el = h(attrs.long ? 'textarea' : 'input', { ...(attrs.long ? {} : { type: 'text' }), value: get() ?? '', maxLength: max, placeholder: attrs.placeholder || '', oninput: (e) => { set(e.target.value); touch(); } });
+  if (attrs.id) el.id = attrs.id;
+  return h('label', {}, labelText, el);
+}
+const check = (labelText, get, set) => h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: !!get(), onchange: (e) => { set(e.target.checked); touch(); } }), labelText);
+
+/* ---- Tabs ---- */
+function tabSections() {
+  const d = S.draft;
+  const rows = SECTIONS.map(([id, name], i) => {
+    const s = (d.sections[id] ??= {});
+    return h('tr', {},
+      h('td', {}, name),
+      h('td', {}, h('input', { type: 'text', 'aria-label': 'الاسم الجديد لقسم ' + name, value: s.label ?? '', maxLength: LIMITS.label, placeholder: name, oninput: (e) => { s.label = e.target.value || undefined; touch(); } })),
+      h('td', {}, h('input', { type: 'number', 'aria-label': 'ترتيب قسم ' + name, style: 'width:80px', value: s.order ?? i + 1, min: 1, max: 99, oninput: (e) => { s.order = Number(e.target.value); touch(); } })),
+      h('td', {}, h('input', { type: 'checkbox', 'aria-label': 'إخفاء قسم ' + name, style: 'width:22px;height:22px', checked: !!s.hidden, onchange: (e) => { s.hidden = e.target.checked; touch(); } })));
+  });
+  return [h('h2', {}, 'أقسام الرئيسية'), h('p', { class: 'hint' }, 'غيّر الأسماء والترتيب، أو أخفِ أي قسم من شبكة الأقسام في الرئيسية.'),
+    h('div', { class: 'card tablewrap' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'القسم'), h('th', {}, 'الاسم الجديد'), h('th', {}, 'الترتيب'), h('th', {}, 'إخفاء'))), h('tbody', {}, rows)))];
+}
+function tabNotice() {
+  const a = (S.draft.announcement ??= { on: false, id: '', title: '', body: '' });
+  return [h('h2', {}, 'إعلان داخل التطبيق'), h('p', { class: 'hint' }, 'يظهر أعلى الرئيسية حتى يغلقه المستخدم. يصل عند فتح التطبيق، وليس إشعاراً على الهاتف.'),
+    h('div', { class: 'card' }, check('الإعلان مفعّل', () => a.on, (v) => { a.on = v; if (v) a.id = String(Date.now()); }),
+      input('العنوان', () => a.title, (v) => { a.title = v; a.id = String(Date.now()); }, LIMITS.nTitle, { id: 'nTitle' }),
+      input('النص', () => a.body, (v) => { a.body = v; a.id = String(Date.now()); }, LIMITS.nBody, { long: true, id: 'nBody' }))];
+}
+function listEditor(title, hint, arr, makeNew, card) {
+  return [h('h2', {}, title), h('p', { class: 'hint' }, hint),
+    h('button', { class: 'btn primary', id: 'add', onclick: () => { arr.unshift(makeNew()); touch(); render(); } }, '+ إضافة'),
+    arr.length ? null : h('p', { class: 'hint' }, 'لا يوجد شيء مضاف بعد. المحتوى الأساسي موجود داخل التطبيق.'),
+    arr.map((item, i) => h('div', { class: 'card' }, card(item), h('button', { class: 'btn danger', style: 'justify-self:start', onclick: () => { arr.splice(i, 1); touch(); render(); } }, 'حذف')))];
+}
+function tabDaily() {
+  return listEditor('أحاديث اليوم', 'تُضاف إلى أحاديث التطبيق. انقل النص من مصدر موثق، واكتب مصدره. تظهر بعد «قال رسول الله ﷺ»، فلا تضف إلا ما قاله ﷺ.', S.draft.daily, () => ({ text: '', source: '', lesson: '' }), (x) => [
+    input('نص الحديث', () => x.text, (v) => { x.text = v; }, LIMITS.text, { long: true }),
+    input('المصدر', () => x.source, (v) => { x.source = v; }, LIMITS.source, { placeholder: 'رواه البخاري' }),
+    input('فائدة اليوم (اختياري)', () => x.lesson, (v) => { x.lesson = v; }, LIMITS.lesson)]);
+}
+function tabStories() {
+  return listEditor('القصص القصيرة', 'تظهر في «قصص قصيرة». اكتب كل فقرة في سطر. لإدراج آية من المصحف اكتب سطراً مثل: @ 21:87-88', S.draft.stories, () => ({ id: String(Date.now()), name: '', title: '', source: '', paras: [], lessons: [] }), (x) => [
+    input('الاسم', () => x.name, (v) => { x.name = v; }, 80),
+    input('وصف قصير', () => x.title, (v) => { x.title = v; }, 120),
+    input('المصدر', () => x.source, (v) => { x.source = v; }, 120),
+    input('الفقرات (كل فقرة في سطر)', () => (x.paras || []).join('\n'), (v) => { x.paras = v.split('\n').map((l) => l.trim()).filter(Boolean); }, 30000, { long: true }),
+    input('الدروس (كل درس في سطر)', () => (x.lessons || []).join('\n'), (v) => { x.lessons = v.split('\n').map((l) => l.trim()).filter(Boolean); }, 2000, { long: true })]);
+}
+function tabQuiz() {
+  return listEditor('أسئلة المسابقة', 'الخيار الأول هو الإجابة الصحيحة، والتطبيق يخلط الخيارات تلقائياً.', S.draft.quiz, () => ({ c: 'general', q: '', o: ['', '', '', ''], a: 0 }), (x) => [
+    h('label', {}, 'المجال', h('select', { onchange: (e) => { x.c = e.target.value; touch(); } }, CATS.map(([v, n]) => h('option', { value: v, selected: x.c === v }, n)))),
+    input('السؤال', () => x.q, (v) => { x.q = v; }, LIMITS.q),
+    h('div', { class: 'row' }, [0, 1, 2, 3].map((i) => h('div', { class: 'grow' }, input(i === 0 ? 'الإجابة الصحيحة' : 'خيار ' + (i + 1), () => x.o[i], (v) => { x.o[i] = v; }, LIMITS.opt))))]);
+}
+function tabFatwa() {
+  const d = S.draft;
+  if (!S.questions) {
+    fetch('fatawa-questions.json').then((r) => r.json()).then((q) => { S.questions = q; render(); }).catch(() => say('تعذّر تحميل قائمة الأسئلة.', 'err'));
+    return [h('p', { class: 'hint' }, 'جارٍ التحميل…')];
+  }
+  const f = S.filter.trim();
+  const shown = [];
+  for (const g of S.questions) for (const q of g.qs) if (!f || q.includes(f) || g.title.includes(f)) shown.push({ q, g: g.title });
+  const count = Object.keys(d.fatwa).length;
+  const pick = S.pick;
+  const ans = pick ? (d.fatwa[pick] ??= { answer: '', source: '', reviewer: '' }) : null;
+  return [h('h2', {}, 'إجابات الفتاوى'),
+    h('div', { class: 'notice' }, 'أضف إجابة كتبها عالم أو جهة إفتاء، وبإذن من صاحبها. لا تظهر الإجابة في التطبيق بدون المصدر واسم المراجع.'),
+    h('p', { class: 'hint' }, 'الإجابات المضافة: ' + count + ' من ' + S.questions.reduce((n, g) => n + g.qs.length, 0)),
+    ans ? h('div', { class: 'card' }, h('strong', {}, pick),
+      input('الإجابة', () => ans.answer, (v) => { ans.answer = v; }, LIMITS.answer, { long: true }),
+      input('المصدر', () => ans.source, (v) => { ans.source = v; }, 160, { placeholder: 'دار الإفتاء المصرية، فتوى رقم…' }),
+      input('المراجع', () => ans.reviewer, (v) => { ans.reviewer = v; }, 100),
+      h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => { if (!ans.answer && !ans.source) delete d.fatwa[pick]; S.pick = null; render(); } }, 'رجوع للقائمة'),
+        h('button', { class: 'btn danger', onclick: () => { delete d.fatwa[pick]; S.pick = null; touch(); render(); } }, 'حذف الإجابة'))) :
+    h('div', { class: 'card' }, h('input', { type: 'search', id: 'fq', 'aria-label': 'ابحث في الأسئلة', placeholder: 'ابحث في الأسئلة أو المجموعات', value: S.filter, oninput: (e) => { S.filter = e.target.value; render(); document.getElementById('fq').focus(); } }),
+      h('div', { style: 'max-height:60vh;overflow:auto' }, shown.slice(0, 200).map(({ q, g }) => h('button', { class: 'q' + (d.fatwa[q] ? ' done' : ''), onclick: () => { S.pick = q; render(); } }, q, h('span', { class: 'muted' }, ' · ' + g)))),
+      shown.length > 200 ? h('p', { class: 'hint' }, 'يظهر أول ٢٠٠ نتيجة. استخدم البحث لتضييق القائمة.') : null)];
+}
+function changes() {
+  const a = S.draft, b = normalize(S.live || blank());
+  const n = (x) => Object.keys(x || {}).length;
+  const out = [];
+  if (JSON.stringify(a.sections) !== JSON.stringify(b.sections)) out.push('تعديل على الأقسام');
+  if (JSON.stringify(a.announcement) !== JSON.stringify(b.announcement)) out.push('تعديل على الإعلان');
+  for (const [k, name] of [['daily', 'أحاديث اليوم'], ['stories', 'القصص'], ['quiz', 'الأسئلة']]) if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) out.push(name + ': ' + b[k].length + ' ← ' + a[k].length);
+  if (JSON.stringify(a.fatwa) !== JSON.stringify(b.fatwa)) out.push('إجابات الفتاوى: ' + n(b.fatwa) + ' ← ' + n(a.fatwa));
+  return out;
+}
+function problems() {
+  const d = S.draft, p = [];
+  d.daily.forEach((x, i) => { if (!x.text?.trim() || !x.source?.trim()) p.push('حديث اليوم ' + (i + 1) + ': النص والمصدر مطلوبان.'); });
+  d.stories.forEach((x, i) => { if (!x.name?.trim() || !x.paras?.length) p.push('القصة ' + (i + 1) + ': الاسم والفقرات مطلوبة.'); });
+  d.quiz.forEach((x, i) => { if (!x.q?.trim() || x.o.filter((o) => o?.trim()).length < 2 || !x.o[0]?.trim()) p.push('السؤال ' + (i + 1) + ': السؤال والإجابة وخيار آخر مطلوبة.'); });
+  Object.entries(d.fatwa).forEach(([q, x]) => { if (!x.answer?.trim() || !x.source?.trim() || !x.reviewer?.trim()) p.push('فتوى «' + q + '»: الإجابة والمصدر والمراجع مطلوبة.'); });
+  const a = d.announcement; if (a?.on && (!a.title?.trim() || !a.body?.trim())) p.push('الإعلان: العنوان والنص مطلوبان.');
+  return p;
+}
+function tabPublish() {
+  const ch = changes(), bad = problems();
+  let confirmed = false, reviewer = '';
+  const pub = h('button', { class: 'btn primary', id: 'publish', disabled: true, onclick: publish }, 'انشر للمستخدمين');
+  const upd = () => { pub.disabled = !(confirmed && reviewer.trim() && !bad.length && ch.length && !S.dirty); S.reviewer = reviewer; };
+  return [h('h2', {}, 'المراجعة والنشر'),
+    h('p', { class: 'hint' }, 'الحفظ يبقى مسودة لا يراها المستخدمون. النشر يصل إلى التطبيقات خلال ساعات عند فتحها.'),
+    S.dirty ? h('div', { class: 'notice' }, 'احفظ المسودة أولاً.') : null,
+    h('div', { class: 'card' }, h('strong', {}, 'ما سيتغير'), ch.length ? h('ul', {}, ch.map((c) => h('li', {}, c))) : h('p', { class: 'hint' }, 'لا يوجد فرق عن المنشور.')),
+    bad.length ? h('div', { class: 'notice err', id: 'problems' }, h('strong', {}, 'أصلح هذه أولاً:'), h('ul', {}, bad.map((c) => h('li', {}, c)))) : null,
+    h('div', { class: 'card' },
+      h('label', {}, 'اسم المراجع الشرعي', h('input', { type: 'text', id: 'reviewer', maxLength: 100, oninput: (e) => { reviewer = e.target.value; upd(); } })),
+      h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'confirm', onchange: (e) => { confirmed = e.target.checked; upd(); } }), 'راجع مختص النصوص الدينية في هذا التعديل'),
+      pub)];
+}
+async function publish() {
+  try {
+    say('جارٍ النشر…');
+    const next = { ...S.draft, version: (S.live?.version || 0) + 1, publishedAt: new Date().toISOString(), reviewedBy: S.reviewer };
+    S.liveSha = await writeFile('content.json', next, S.liveSha, 'نشر الإصدار ' + next.version + ' (مراجعة: ' + S.reviewer + ')');
+    S.live = next;
+    S.draft.version = next.version;
+    say('تم النشر: الإصدار ' + next.version, 'ok');
+    render();
+  } catch (e) { say(e.message, 'err'); }
+}
+function tabLog() {
+  const box = h('div', { class: 'card', id: 'log' }, 'جارٍ التحميل…');
+  gh('/commits?per_page=30').then((list) => {
+    box.replaceChildren(h('div', { class: 'tablewrap' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'التاريخ'), h('th', {}, 'التغيير'), h('th', {}))),
+      h('tbody', {}, (list || []).map((c) => h('tr', {}, h('td', {}, new Date(c.commit.author.date).toLocaleString('ar-EG')), h('td', {}, c.commit.message.split('\n')[0]),
+        h('td', {}, h('button', { class: 'btn', onclick: () => restore(c.sha) }, 'استرجع للمسودة'))))))));
+  }).catch((e) => box.replaceChildren(e.message));
+  return [h('h2', {}, 'سجل التغييرات'), h('p', { class: 'hint' }, 'كل حفظ ونشر مسجّل ولا يُحذف. الاسترجاع ينقل النسخة القديمة إلى المسودة، ولا ينشرها.'), box];
+}
+async function restore(sha) {
+  try {
+    const old = await readFile('content.json', sha);
+    if (!old.data) throw new Error('لا توجد نسخة في هذا التغيير.');
+    S.draft = normalize(old.data);
+    touch();
+    S.tab = 'sections';
+    render();
+    say('استُرجعت النسخة إلى المسودة. احفظها ثم راجعها وانشرها.');
+  } catch (e) { say(e.message, 'err'); }
+}
+function normalize(d) { const b = blank(); return { ...b, ...d, sections: d.sections || {}, announcement: d.announcement || b.announcement, daily: d.daily || [], stories: d.stories || [], quiz: d.quiz || [], fatwa: d.fatwa || {} }; }
+
+async function save() {
+  try {
+    say('جارٍ الحفظ…');
+    S.draftSha = await writeFile('draft.json', S.draft, S.draftSha, 'حفظ مسودة: ' + (changes().join('، ') || 'بدون فرق'));
+    S.dirty = false;
+    say('حُفظت المسودة. لم يصل شيء إلى المستخدمين بعد.', 'ok');
+    render();
+  } catch (e) { say(e.message, 'err'); }
+}
+const TAB = { sections: tabSections, notice: tabNotice, daily: tabDaily, stories: tabStories, quiz: tabQuiz, fatwa: tabFatwa, publish: tabPublish, log: tabLog };
+
+function render() {
+  const app = document.getElementById('app');
+  if (!S.draft) return renderLogin(app);
+  app.replaceChildren(
+    h('header', { class: 'top' }, h('h1', {}, 'إدارة رفيق الطاعة'), h('span', { class: 'status' }, 'المنشور: الإصدار ' + (S.live?.version || 0)),
+      h('button', { class: 'btn', style: 'background:transparent;color:#FBF6E9;border-color:#E9C877', onclick: () => { sessionStorage.removeItem('t'); location.reload(); } }, 'خروج')),
+    h('nav', { 'aria-label': 'أقسام الإدارة' }, TABS.map(([id, name]) => h('button', { class: S.tab === id ? 'on' : '', 'data-tab': id, onclick: () => { S.tab = id; S.pick = null; render(); } }, name))),
+    h('main', {}, TAB[S.tab]()),
+    h('div', { class: 'bar' }, h('span', { class: 'msg ' + S.msgKind, id: 'msg' }, S.msg || (S.dirty ? 'تعديلات غير محفوظة' : 'لا توجد تعديلات جديدة')),
+      h('button', { class: 'btn primary', id: 'save', disabled: !S.dirty, onclick: save }, 'احفظ المسودة')));
+}
+function renderLogin(app, error) {
+  const t = h('input', { type: 'password', id: 'token', autocomplete: 'off' });
+  const err = h('p', { class: 'notice err', hidden: !error }, error || '');
+  const go = async (e) => {
+    e.preventDefault();
+    err.hidden = true;
+    S.token = t.value.trim();
+    try { await open(); sessionStorage.setItem('t', S.token); render(); } catch (x) { S.token = null; err.textContent = x.message; err.hidden = false; }
+  };
+  app.replaceChildren(h('form', { class: 'login', onsubmit: go }, h('h1', {}, 'إدارة رفيق الطاعة'),
+    h('p', { class: 'hint' }, 'ادخل بمفتاح GitHub الخاص بمستودع المحتوى. يُحفظ المفتاح في هذه الجلسة فقط، ويُرسل إلى GitHub وحده.'),
+    h('label', {}, 'مفتاح GitHub', t), err, h('button', { class: 'btn primary', id: 'login' }, 'دخول')));
+}
+async function open() {
+  const [draft, live] = await Promise.all([readFile('draft.json'), readFile('content.json')]);
+  if (!live.sha && !draft.sha) throw new Error('لم أجد مستودع المحتوى، أو أن المفتاح لا يصل إليه.');
+  S.live = live.data; S.liveSha = live.sha; S.draftSha = draft.sha;
+  S.draft = normalize(draft.data || live.data || blank());
+}
+window.addEventListener('beforeunload', (e) => { if (S.dirty) e.preventDefault(); });
+(async () => {
+  const saved = sessionStorage.getItem('t');
+  if (saved) { S.token = saved; try { await open(); } catch (x) { S.token = null; sessionStorage.removeItem('t'); } }
+  render();
+})();
+</script>
+</body>
+</html>
