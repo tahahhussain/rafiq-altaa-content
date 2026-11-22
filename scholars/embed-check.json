@@ -1,0 +1,334 @@
+{
+ "date": "2026-11-22",
+ "blocked": [],
+ "scholars": {
+  "shaarawi": {
+   "name": "محمد متولي الشعراوي",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "ali-gomaa": {
+   "name": "علي جمعة",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "maghamsi": {
+   "name": "صالح المغامسي",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "othman-alkhamees": {
+   "name": "عثمان الخميس",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "amr-khaled": {
+   "name": "عمرو خالد",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "ibn-uthaymeen": {
+   "name": "محمد بن صالح العثيمين",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "ibn-baz": {
+   "name": "عبد العزيز بن باز",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "nabulsi": {
+   "name": "محمد راتب النابلسي",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "mustafa-hosny": {
+   "name": "مصطفى حسني",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "omar-abdelkafy": {
+   "name": "عمر عبد الكافي",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "aid-alqarni": {
+   "name": "عائض القرني",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "nabil-alawadi": {
+   "name": "نبيل العوضي",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "tareq-suwaidan": {
+   "name": "طارق السويدان",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "al-azhar": {
+   "name": "الأزهر الشريف",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "al-azhar-mosque": {
+   "name": "الجامع الأزهر",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "dar-al-ifta": {
+   "name": "دار الإفتاء المصرية",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "abdullah-rushdy": {
+   "name": "عبد الله رشدي",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "mohamed-hassan": {
+   "name": "محمد حسان",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "huwayni": {
+   "name": "أبو إسحاق الحويني",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "usama-alazhari": {
+   "name": "أسامة الأزهري",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "salman-alouda": {
+   "name": "سلمان العودة",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "abdulmohsen-alahmad": {
+   "name": "عبد المحسن الأحمد",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "waseem-yousef": {
+   "name": "وسيم يوسف",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "ahmed-abdou-awad": {
+   "name": "أحمد عبده عوض",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "hazem-shouman": {
+   "name": "حازم شومان",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "mohamed-hedaya": {
+   "name": "محمد هداية",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "yosry-gabr": {
+   "name": "يسري جبر",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "almunajjid": {
+   "name": "محمد صالح المنجد",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "eyad-qunaibi": {
+   "name": "إياد قنيبي",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "ragheb-elsergany": {
+   "name": "راغب السرجاني",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "adnan-ibrahim": {
+   "name": "عدنان إبراهيم",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "hasan-alhusini": {
+   "name": "حسن الحسيني",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "mahmoud-elmasry": {
+   "name": "محمود المصري",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "raslan": {
+   "name": "محمد سعيد رسلان",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "ali-aljifri": {
+   "name": "علي الجفري",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "dedew": {
+   "name": "محمد الحسن الددو",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "omar-bin-hafiz": {
+   "name": "عمر بن حفيظ",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "bouti": {
+   "name": "محمد سعيد رمضان البوطي",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "mishari-alkharaz": {
+   "name": "مشاري الخراز",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "alkhudheir": {
+   "name": "عبد الكريم الخضير",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  },
+  "alruhaily": {
+   "name": "سليمان الرحيلي",
+   "codes": [
+    200,
+    200
+   ],
+   "ok": true
+  }
+ }
+}
